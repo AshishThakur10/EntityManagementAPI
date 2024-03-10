@@ -1,17 +1,13 @@
+
 namespace EntityManagementAPI.Models;
 
 public class Entity: IEntity
 {
-    // public Entity(string name, bool deceased, string? gender, string id)
-    //     {
-    //         Name = name;
-    //         Deceased = deceased;
-    //         Gender = gender;
-    //         Id = id;
-    //     }
-
-    public string Name { get;  set; }
+    public string? Name { get;  set; }
     public bool Deceased { get; set; }
     public string? Gender { get; set; }
-    public string Id { get; set; }
+    public required string Id { get; set; }
+    public List<Address>? Addresses { get; set; }
+    public required List<Date>? Dates { get; set; }
+    public required List<Name> Names { get; set; }
 }
