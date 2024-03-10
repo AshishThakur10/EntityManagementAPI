@@ -3,7 +3,6 @@ namespace EntityManagementAPI.Models;
 
 public class Entity: IEntity
 {
-    public string? Name { get;  set; }
     public bool Deceased { get; set; }
     public string? Gender { get; set; }
     public required string Id { get; set; }
