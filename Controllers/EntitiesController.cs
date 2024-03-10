@@ -25,7 +25,8 @@ public class EntitiesController : ControllerBase
         [FromQuery] int pageNumber = 1,
         [FromQuery] int pageSize = 10,
         [FromQuery] string? sortBy = null,
-        [FromQuery] SortDirection sortDirection = SortDirection.Ascending)
+        [FromQuery] SortDirection sortDirection = SortDirection.Ascending,
+        [FromQuery] string? search = null)
     {
         if (pageNumber <= 0 || pageSize <= 0)
         {
@@ -33,6 +34,18 @@ public class EntitiesController : ControllerBase
         }
 
         var entities = MockDatabase.Entities.AsEnumerable(); // Convert to IEnumberable for sorting
+
+        //Apply Searching (if provided)
+        if (!string.IsNullOrEmpty(search))
+        {
+            entities = entities.Where(e =>
+                e.Names.Any(n => n.FirstName.ToLowerInvariant().Contains(search.ToLowerInvariant())) ||
+                e.Names.Any(n => n.MiddleName?.ToLowerInvariant().Contains(search.ToLowerInvariant()) ?? false) ||
+                e.Names.Any(n => n.Surname.ToLowerInvariant().Contains(search.ToLowerInvariant())) ||
+                e.Addresses.Any(a => a.AddressLine.ToLowerInvariant().Contains(search.ToLowerInvariant())) ||
+                e.Addresses.Any(a => a.City.ToLowerInvariant().Contains(search.ToLowerInvariant())) ||
+                e.Addresses.Any(a => a.Country.ToLowerInvariant().Contains(search.ToLowerInvariant())));
+        }
 
         // Apply Sorting
         if (!string.IsNullOrEmpty(sortBy))
