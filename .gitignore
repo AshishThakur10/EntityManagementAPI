@@ -50,3 +50,31 @@ modules.order
 Module.symvers
 Mkfile.old
 dkms.conf
+
+# NuGet
+*.nuget.props
+*.nuget.targets
+packages/
+
+# Build results
+bin/
+obj/
+
+# User-specific files
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Resharper
+_resharper/
+
+# Rider
+.idea/
+
+# Visual Studio files
+.vs/
+*.vscode/
+*.suo
+*.user
+*.sln.docstates
