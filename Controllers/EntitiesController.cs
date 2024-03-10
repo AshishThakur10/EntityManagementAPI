@@ -2,6 +2,12 @@ using EntityManagementAPI;
 using EntityManagementAPI.Models;
 using Microsoft.AspNetCore.Mvc;
 
+public enum SortDirection
+{
+    Ascending,
+    Descending
+}
+
 [ApiController]
 [Route("api/[controller]")]
 public class EntitiesController : ControllerBase
@@ -15,28 +21,62 @@ public class EntitiesController : ControllerBase
 
     [HttpGet]
     [Route("All", Name = "GetAllEntities")]
-    public ActionResult<IEnumerable<Entity>> GetAllEntities([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
+    public ActionResult<IEnumerable<Entity>> GetAllEntities(
+        [FromQuery] int pageNumber = 1,
+        [FromQuery] int pageSize = 10,
+        [FromQuery] string? sortBy = null,
+        [FromQuery] SortDirection sortDirection = SortDirection.Ascending)
     {
         if (pageNumber <= 0 || pageSize <= 0)
         {
             return BadRequest("Invalid pagination parameters. pageNumber and pageSize must be positive integers.");
         }
-        int totalEntities = MockDatabase.Entities.Count();
+
+        var entities = MockDatabase.Entities.AsEnumerable(); // Convert to IEnumberable for sorting
+
+        // Apply Sorting
+        if (!string.IsNullOrEmpty(sortBy))
+        {
+            switch (sortBy.ToLowerInvariant())
+            {
+                case "name":
+                    entities = sortDirection == SortDirection.Ascending
+                        ? entities.OrderBy(e => e.Names.FirstOrDefault()?.FirstName)
+                        : entities.OrderByDescending(e => e.Names.FirstOrDefault()?.FirstName);
+                    break;
+                case "deceased":
+                    entities = sortDirection == SortDirection.Ascending
+                        ? entities.OrderBy(e => e.Deceased)
+                        : entities.OrderByDescending(e => e.Deceased);
+                    break;
+                case "gender":
+                    entities = sortDirection == SortDirection.Ascending
+                        ? entities.OrderBy(e => e.Gender)
+                        : entities.OrderByDescending(e => e.Gender);
+                    break;
+                default:
+                    return BadRequest("sorting query invalid choose from name, deceased, gender");
+                    break;
+            }
+        }
+
+        int totalEntities = entities.Count();
         int totalPages = (int)Math.Ceiling((double)totalEntities / pageSize);
 
         if (pageNumber > totalPages)
         {
             return NotFound("The requested page number is greater than the total number of pages.");
         }
-        var paginatedEntities = MockDatabase.Entities
-        .Skip((pageNumber-1) * pageSize)
+        var paginatedEntities = entities
+        .Skip((pageNumber - 1) * pageSize)
         .Take(pageSize)
         .ToList();
 
-        var response = new {
+        var response = new
+        {
             Data = paginatedEntities,
             PageNumber = pageNumber,
-            pageSize  = pageSize,
+            pageSize = pageSize,
             TotalCount = totalEntities
         };
 
