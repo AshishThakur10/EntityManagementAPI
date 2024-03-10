@@ -26,7 +26,11 @@ public class EntitiesController : ControllerBase
         [FromQuery] int pageSize = 10,
         [FromQuery] string? sortBy = null,
         [FromQuery] SortDirection sortDirection = SortDirection.Ascending,
-        [FromQuery] string? search = null)
+        [FromQuery] string? search = null,
+        [FromQuery] string? gender = null,
+        [FromQuery] DateTime? startDate = null,
+        [FromQuery] DateTime? endDate = null,
+        [FromQuery] string[]? countries = null)
     {
         if (pageNumber <= 0 || pageSize <= 0)
         {
@@ -34,6 +38,22 @@ public class EntitiesController : ControllerBase
         }
 
         var entities = MockDatabase.Entities.AsEnumerable(); // Convert to IEnumberable for sorting
+
+        // Apply Filters (if provided)
+        if (!string.IsNullOrEmpty(gender))
+        {
+            entities = entities.Where(e => e.Gender.ToLowerInvariant() == gender.ToLowerInvariant());
+        }
+        if (startDate.HasValue && endDate.HasValue)
+        {
+            entities = entities.Where(e => e.Dates.Any(d => d.DateType == "Birth Date" && d.Dates >= startDate && d.Dates <= endDate));
+        }
+
+        if (countries?.Any() == true)
+        {
+            entities = entities.Where(e => e.Addresses.Any(a => countries.Contains(a.Country.ToLowerInvariant())));
+        }
+
 
         //Apply Searching (if provided)
         if (!string.IsNullOrEmpty(search))
