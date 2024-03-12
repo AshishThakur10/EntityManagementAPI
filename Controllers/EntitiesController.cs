@@ -12,27 +12,51 @@ public enum SortDirection
 [Route("api/[controller]")]
 public class EntitiesController : ControllerBase
 {
+    private const int MaxRetryAttempts = 3;
+    private static readonly TimeSpan InitialRetryDelay = TimeSpan.FromSeconds(2);
+    private static readonly TimeSpan MaxRetryDelay = TimeSpan.FromSeconds(30);
+
+    private static readonly TimeSpan RetryDelay = TimeSpan.FromSeconds(2);
 
     [HttpPost]
     [Route("", Name = "CreateEntity")]
-    public async Task<ActionResult<Entity>> CreateEntities(Entity entity)
+    public ActionResult<Entity> CreateEntities(Entity entity)
     {
         try
         {
             // Check if the provided entity is valid
             if (!ModelState.IsValid) return BadRequest(ModelState); // 400 Bad Request if the model state is not valid
 
-            // Generate a unique ID for the new entity
-            string newEntityId = Guid.NewGuid().ToString();
+            //Rety machanism for databse write operation
+            int retryAttempt = 0;
+            TimeSpan delay = InitialRetryDelay;
+            while (retryAttempt < MaxRetryAttempts)
+            {
+                try
+                {
+                    // Generate a unique ID for the new entity
+                    string newEntityId = Guid.NewGuid().ToString();
 
-            // Set the ID of the provided entity to the newly generated ID
-            entity.Id = newEntityId;
+                    // Set the ID of the provided entity to the newly generated ID
+                    entity.Id = newEntityId;
 
-            // Add the new entity to the mock database
-            MockDatabase.Entities.Add(entity);
+                    // Add the new entity to the mock database
+                    MockDatabase.Entities.Add(entity);
 
-            // Return the ID of the newly created entity
-            return Ok(entity);//CreatedAtRoute("GetEntityByID", new { id = newEntityId }, entity); // 201 Created with the entity data
+                    // Return the ID of the newly created entity
+                    return Ok(entity);
+                }
+                catch (Exception)
+                {
+                    retryAttempt++;
+                    if (retryAttempt < MaxRetryAttempts)
+                    {
+                        Thread.Sleep(RetryDelay * retryAttempt); // Exponential backoff delay
+                    }
+                }
+            }
+            // Return error response if all retry attempts fail
+            return StatusCode(500, "Failed to create entity after multiple retry attempts.");
         }
         catch (Exception ex)
         {
@@ -169,23 +193,50 @@ public class EntitiesController : ControllerBase
     [Route("{Id:alpha}", Name = "UpdateById")]
     public async Task<ActionResult<Entity>> UpdateEntities(string Id, Entity entity)
     {
-        if (!ModelState.IsValid) return BadRequest(ModelState);
-
         try
         {
-            var entityToUpdate = MockDatabase.Entities.FirstOrDefault(n => n.Id == Id);
-            if (entityToUpdate == null) return NotFound($"Entity with ID {Id} does not exist.");  // 404 Status Code
+            if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            // Update the properties of entityToUpdate with the properties of the provided entity
-            entityToUpdate.Deceased = entity.Deceased != null ? entity.Deceased : entityToUpdate.Deceased;
-            entityToUpdate.Gender = !string.IsNullOrEmpty(entity.Gender) ? entity.Gender : entityToUpdate.Gender;
-            entityToUpdate.Addresses = entity.Addresses != null ? entity.Addresses : entityToUpdate.Addresses;
-            entityToUpdate.Dates = entity.Dates != null ? entity.Dates : entityToUpdate.Dates;
-            entityToUpdate.Names = entity.Names != null ? entity.Names : entityToUpdate.Names;
+            // Retry mechanism with exponential backoff for database write operation
+            int retryAttempt = 0;
+            TimeSpan delay = InitialRetryDelay;
 
-            // In a real scenario with Entity Framework, you would call SaveChanges here
-            // MockDatabase.SaveChanges();
-            return NoContent(); //204 no content successful update
+            while (retryAttempt < MaxRetryAttempts)
+            {
+                try
+                {
+                    var entityToUpdate = MockDatabase.Entities.FirstOrDefault(n => n.Id == Id);
+                    if (entityToUpdate == null)
+                    {
+                        delay = TimeSpan.FromSeconds(Math.Min(Math.Pow(2, retryAttempt) + new Random().NextDouble(), MaxRetryDelay.TotalSeconds));
+                        Thread.Sleep(delay); return NotFound($"Entity with ID {Id} does not exist.");  // 404 Status Code
+                    }
+                    // Update the properties of entityToUpdate with the properties of the provided entity
+                    entityToUpdate.Deceased = entity.Deceased != null ? entity.Deceased : entityToUpdate.Deceased;
+                    entityToUpdate.Gender = !string.IsNullOrEmpty(entity.Gender) ? entity.Gender : entityToUpdate.Gender;
+                    entityToUpdate.Addresses = entity.Addresses != null ? entity.Addresses : entityToUpdate.Addresses;
+                    entityToUpdate.Dates = entity.Dates != null ? entity.Dates : entityToUpdate.Dates;
+                    entityToUpdate.Names = entity.Names != null ? entity.Names : entityToUpdate.Names;
+
+                    // In a real scenario with Entity Framework, you would call SaveChanges here
+                    // MockDatabase.SaveChanges();
+                    return NoContent(); //204 no content successful update
+                }
+                catch (Exception)
+                {
+                    retryAttempt++;
+                    if (retryAttempt < MaxRetryAttempts)
+                    {
+                        // Exponential backoff delay
+                        // delay = TimeSpan.FromSeconds(Math.Min(Math.Pow(2, retryAttempt) + new Random().NextDouble(), MaxRetryDelay.TotalSeconds));
+                        // Thread.Sleep(delay);
+                        Thread.Sleep(RetryDelay * retryAttempt); // Exponential backoff delay
+                    }
+                }
+            }
+            // Return error response if all retry attempts fail
+            return StatusCode(500, "Failed to update entity after multiple retry attempts.");
+
         }
         catch (Exception ex)
         {
