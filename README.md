@@ -1,5 +1,6 @@
 # Entity Management API
-
+### Documentation
+Explore the API documentation [Live](https://entitymanagementapi.onrender.com/swagger/index.html).
 ## Overview
 
 The Entity Management API is a RESTful web service built using .NET Core, designed to provide CRUD (Create, Read, Update, Delete) operations for managing entities. This project was developed as a technical test for the C# Developer role at KYC360.
