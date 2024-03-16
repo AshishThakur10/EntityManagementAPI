@@ -1,80 +1,67 @@
-# Prerequisites
-*.d
-
-# Object files
-*.o
-*.ko
-*.obj
-*.elf
-
-# Linker output
-*.ilk
-*.map
-*.exp
-
-# Precompiled Headers
-*.gch
-*.pch
-
-# Libraries
-*.lib
-*.a
-*.la
-*.lo
-
-# Shared objects (inc. Windows DLLs)
-*.dll
-*.so
-*.so.*
-*.dylib
-
-# Executables
-*.exe
-*.out
-*.app
-*.i*86
-*.x86_64
-*.hex
-
-# Debug files
-*.dSYM/
-*.su
-*.idb
+# Ignore Visual Studio files
+.vs/
+/.vscode/
+*.suo
+*.sln
+*.user
+*.userprefs
+*.pidb
+*.ide
 *.pdb
+*.dll
+*.exe
+*.cache
+*.log
+*.vspscc
+*.vssscc
+*_i.c
+*_p.c
+*.ncb
+*.suo
+*.tlb
+*.tlh
+*.bak
+*.[Cc]ache
+*.ilk
+*.meta
+*.obj
+*.pch
+*.pgc
+*.pgd
+*.rsp
+*.sbr
+*.tlh
+*.tli
+*.tmp
+*.tmp_proj
+*.log
+*.iobj
+*.ipdb
+*.atm
+*.aps
+*.res
+*.opendb
+*.VC.opendb
 
-# Kernel Module Compile Results
-*.mod*
-*.cmd
-.tmp_versions/
-modules.order
-Module.symvers
-Mkfile.old
-dkms.conf
-
-# NuGet
-*.nuget.props
-*.nuget.targets
-packages/
-
-# Build results
+# Ignore build output
 bin/
 obj/
 
-# User-specific files
-*.suo
-*.user
-*.userosscache
-*.sln.docstates
+# Ignore NuGet packages
+*.nuget.props
+*.paket.*
+paket.lock
+project.lock.json
+*/packages/*
+!**/packages/*.config
 
-# Resharper
-_resharper/
+# Ignore user-specific files
+*.DS_Store
+Thumbs.db
 
-# Rider
-.idea/
 
-# Visual Studio files
-.vs/
-*.vscode/
-*.suo
-*.user
-*.sln.docstates
+# Ignore test results
+TestResults/
+
+# Ignore any other build artifacts
+*.swp
