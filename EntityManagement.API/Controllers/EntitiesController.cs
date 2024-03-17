@@ -255,21 +255,37 @@ namespace EntityManagement.API.Controllers
                 return StatusCode(500, $"An error occurred while updating the entity. {ex}"); // 500 Internal Server Error
             }
         }
-
+        
+        // DELETE method to delete entities by ID
         [HttpDelete]
         [Route("{Id:alpha}", Name = "DeleteById")]
         public ActionResult DeleteEntities(string Id)
         {
             try
             {
+                // Log that the deletion process is initiated
+                _logger.LogInformation($"Attempting to delete entity with ID: {Id}");
+
+                // Find the entity to delete by ID
                 var entityToDelete = MockDatabase.Entities.FirstOrDefault(n => n.Id == Id);
                 if (entityToDelete == null)
+                {
+                    // Log if the entity with the provided ID does not exist
+                    _logger.LogInformation($"Entity with ID {Id} does not exist.");
                     return NotFound($"Entity with ID {Id} does not exist.");
+                }
+                
+                // Remove the entity from the database
                 MockDatabase.Entities.Remove(entityToDelete);
+
+                // Log that the entity is successfully deleted
+                _logger.LogInformation($"Entity with ID {Id} successfully deleted.");
                 return NoContent();
             }
             catch (Exception ex)
             {
+                // Log any exceptions that occur during the deletion process
+                _logger.LogError(ex, $"Failed to delete entity with ID {Id}. Please try again later.");
                 return StatusCode(500, $"Failed to delete entity with ID {Id}. Please try again later. {ex}");
             }
         }
