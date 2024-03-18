@@ -181,7 +181,7 @@ namespace EntityManagement.API.Controllers
             }
         }
 
-        [HttpGet("{Id:alpha}", Name = "GetEntitiyByID")]
+        [HttpGet("{Id}", Name = "GetEntitiyByID")]
         public ActionResult<Entity> GetEntitiyByID(string Id)
         {
             try
@@ -202,7 +202,7 @@ namespace EntityManagement.API.Controllers
         }
 
         [HttpPut]
-        [Route("{Id:alpha}", Name = "UpdateById")]
+        [Route("{Id}", Name = "UpdateById")]
         public async Task<ActionResult<Entity>> UpdateEntities(string Id, Entity entity)
         {
             try
